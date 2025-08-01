@@ -7,7 +7,6 @@ class Game
 
   def initialize(player_count)
     @players = Array.new(player_count) { |i| Player.new("Player #{i + 1}") }
-    @dice_set = DiceSet.new
     @final_round_triggered = false
     @final_trigger_index = nil
   end
@@ -20,7 +19,7 @@ class Game
       puts "\nTurn #{turn}:\n" + "--------"
 
       @players.each_with_index do |player, index|
-        puts "\n#{player.name} rolls: #{initial_roll = @dice_set.roll(5).join(', ')}"
+        puts "\n#{player.name} rolls: #{initial_roll = roll_dice(5).join(', ')}"
         turn_score = take_turn(player, initial_roll)
 
         if player.total_score >= FINAL_SCORE && !@final_round_triggered
@@ -40,7 +39,7 @@ class Game
 
     @players.each_with_index do |player, index|
       next if index == @final_trigger_index
-      puts "\n#{player.name} rolls: #{initial_roll = @dice_set.roll(5).join(', ')}"
+      puts "\n#{player.name} rolls: #{initial_roll = roll_dice(5).join(', ')}"
       take_turn(player, initial_roll)
     end
 
@@ -71,7 +70,7 @@ class Game
 
       if non_scoring_dice.empty?
         puts "All dice scored! You may roll all 5 dice again."
-        dice = @dice_set.roll(5)
+        dice = roll_dice(5)
         puts "#{player.name} rolls: #{dice.join(', ')}"
         next
       end
@@ -81,7 +80,7 @@ class Game
       answer = gets.strip.downcase
       break unless answer == 'y'
 
-      dice = @dice_set.roll(non_scoring_dice.size)
+      dice = roll_dice(non_scoring_dice.size)
       puts "#{player.name} rolls: #{dice.join(', ')}"
     end
 

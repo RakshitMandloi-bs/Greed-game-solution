@@ -90,8 +90,7 @@ RSpec.describe 'Greed Game' do
     end
 
     it 'rolls 5 dice initially' do
-      dice_set = DiceSet.new
-      roll = dice_set.roll(5)
+      roll = roll_dice(5)
       expect(roll.size).to eq(5)
       expect(roll.all? { |d| (1..6).include?(d) }).to be true
     end
@@ -116,7 +115,7 @@ RSpec.describe 'Greed Game' do
 
     it 'adds score only if roll is not zero' do
       allow(game).to receive(:gets).and_return("n")
-      allow_any_instance_of(DiceSet).to receive(:roll).and_return([1, 2, 3, 4, 5])
+      allow(self).to receive(:roll_dice).and_return([1, 2, 3, 4, 5])
       player = Player.new("Test")
       game.send(:take_turn, player, "1, 2, 3, 4, 5")
       expect(player.total_score).to be >= 0
@@ -124,7 +123,7 @@ RSpec.describe 'Greed Game' do
 
     it 'handles roll with all scoring dice and rerolls 5 dice' do
       allow(game).to receive(:gets).and_return("n")
-      allow_any_instance_of(DiceSet).to receive(:roll).and_return([1, 1, 1, 5, 5], [2, 3, 4, 6, 2])
+      allow(self).to receive(:roll_dice).and_return([1, 1, 1, 5, 5], [2, 3, 4, 6, 2])
       player = Player.new("Test")
       game.send(:take_turn, player, "1, 1, 1, 5, 5")
       expect(player.total_score).to be >= 0
