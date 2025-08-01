@@ -1,4 +1,4 @@
-require_relative './game'
+require_relative './src/game'
 
 puts "🎲 Welcome to Greed Dice Game!"
 print "Enter number of players: "
