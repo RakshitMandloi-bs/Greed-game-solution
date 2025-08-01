@@ -1,12 +1,43 @@
-require_relative 'dice_set'
-require_relative 'score'
+def roll_dice(n)
+  Array.new(n) { rand(1..6) }
+end
 require_relative 'player'
 
 class Game
+  # Calculates the score and returns both the score and the scoring dice
+  def score(dice)
+    counts = Hash.new(0)
+    dice.each { |value| counts[value] += 1 }
+
+    result = 0
+    scoring_dice = []
+
+    # Handle triples
+    (1..6).each do |num|
+      if counts[num] >= 3
+        result += (num == 1) ? 1000 : num * 100
+        3.times { scoring_dice << num }
+        counts[num] -= 3
+      end
+    end
+
+    # Handle remaining 1s and 5s
+    if counts[1] > 0
+      result += counts[1] * 100
+      counts[1].times { scoring_dice << 1 }
+    end
+    if counts[5] > 0
+      result += counts[5] * 50
+      counts[5].times { scoring_dice << 5 }
+    end
+
+    [result, scoring_dice]
+  end
   FINAL_SCORE = 3000
 
   def initialize(player_count)
     @players = Array.new(player_count) { |i| Player.new("Player #{i + 1}") }
+    @in_game_flags = Array.new(player_count, false)
     @final_round_triggered = false
     @final_trigger_index = nil
   end
@@ -52,9 +83,10 @@ class Game
   def take_turn(player, initial_roll)
     dice = initial_roll.split(', ').map(&:to_i)
     round_score = 0
+    player_index = @players.index(player)
 
     loop do
-      current_score = score(dice)
+      current_score, scoring_dice = score(dice)
       if current_score == 0
         puts "Score in this round: 0"
         puts "Total score: #{player.total_score}"
@@ -62,7 +94,6 @@ class Game
       end
 
       round_score += current_score
-      scoring_dice = get_scoring_dice(dice)
       non_scoring_dice = dice - scoring_dice
 
       puts "Score in this round: #{round_score}"
@@ -84,28 +115,15 @@ class Game
       puts "#{player.name} rolls: #{dice.join(', ')}"
     end
 
-    player.add_score(round_score)
+    # Only add score if player is already in game, or this round gets them in
+    if @in_game_flags[player_index]
+      player.add_to_score(round_score)
+    elsif round_score >= 300
+      @in_game_flags[player_index] = true
+      player.add_to_score(round_score)
+    end
     round_score
   end
 
-  def get_scoring_dice(dice)
-    counts = Hash.new(0)
-    dice.each { |d| counts[d] += 1 }
-    result = []
-
-    counts.each do |num, count|
-      if count >= 3
-        3.times { result << num }
-        count -= 3
-      end
-
-      if num == 1
-        count.times { result << 1 }
-      elsif num == 5
-        count.times { result << 5 }
-      end
-    end
-
-    result
-  end
+  # get_scoring_dice is now merged into score method
 end
